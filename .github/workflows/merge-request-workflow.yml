@@ -1,0 +1,92 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  check-code-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run linting
+        run: docker compose run dev npm run lint:check
+
+  check-code-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run format check
+        run: docker compose run dev npm run format:check
+
+  run-test-cases:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run tests
+        run: docker compose run dev npm run test
+
+  build-push-prod-image:
+    needs: [check-code-lint, check-code-format, run-test-cases]
+    runs-on: ubuntu-latest
+    outputs:
+      sha_short: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Get short commit hash
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push with commit hash tag
+        run: |
+          docker compose build prod
+          docker tag ci-cd-pipeline-prod mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
+          docker push mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
+
+  deploy-prod-image:
+    needs: build-push-prod-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print sha_short value
+        run: echo "sha_short=${{ needs.build-push-prod-image.outputs.sha_short }}"
+
+      - name: Deploy to AWS-EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER_NAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Log in to Docker Hub using the access token
+            echo ${{ secrets.DOCKERHUB_TOKEN }} || docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+            # Stop running container
+            if [ "$(docker ps -f name=example-app-api -q)" ]; then
+              docker stop example-app-api
+            fi
+
+            # Remove stopped container
+            if [ "$(docker ps -a -f name=example-app-api -q)" ]; then
+              docker rm example-app-api
+            fi
+
+            # Remove old image
+            docker rmi $(docker images 'mdtazbinur/example-app' -q)
+
+            # Pull new image & run container
+            docker run -d --name example-app-api -p 80:3000 mdtazbinur/example-app:${{ needs.build-push-prod-image.outputs.sha_short }}
+
+            # Logout doker
+            docker logout
