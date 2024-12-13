@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - master
+      - staging
+      - develop
+
+env:
+  BUILD_ENVIRONMENT: ${{
+    github.ref_name == 'master' && 'production' ||
+    github.ref_name == 'staging' && 'staging' ||
+    github.ref_name == 'develop' && 'develop'
+    }}
 
 jobs:
   check-code-lint:
@@ -62,6 +71,9 @@ jobs:
       - name: Print sha_short value
         run: echo "sha_short=${{ needs.build-push-prod-image.outputs.sha_short }}"
 
+      - name: Print BUILD_ENVIRONMENT value
+        run: echo "env.BUILD_ENVIRONMENT=${{ env.BUILD_ENVIRONMENT }}"
+
       - name: Deploy to AWS-EC2
         uses: appleboy/ssh-action@master
         with:
@@ -72,21 +84,37 @@ jobs:
             # Log in to Docker Hub using the access token
             echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
+            container_name="example-app-api-${{ env.BUILD_ENVIRONMENT }}"
+
             # Stop running container
-            if [ "$(docker ps -f name=example-app-api -q)" ]; then
-              docker stop example-app-api
+            if [ "$(docker ps -f name=$container_name -q)" ]; then
+              docker stop $container_name
             fi
+
+            # Get the image of the stopped container
+            old_image=$(docker ps -a -f name=$container_name --format "{{.Image}}")
 
             # Remove stopped container
-            if [ "$(docker ps -a -f name=example-app-api -q)" ]; then
-              docker rm example-app-api
+            if [ "$(docker ps -a -f name=$container_name -q)" ]; then
+              docker rm $container_name
             fi
 
-            # Remove old image
-            docker rmi $(docker images 'mdtazbinur/example-app' -q)
+            # Remove old image if it exists
+            if [ -n "$old_image" ]; then
+              docker rmi $old_image
+            fi
+
+            # Selecting port
+            if [ "${{ env.BUILD_ENVIRONMENT }}" == "production" ]; then
+              host_port=80
+            elif [ "${{ env.BUILD_ENVIRONMENT }}" == "staging" ]; then
+              host_port=81
+            else
+              host_port=82
+            fi
 
             # Pull new image & run container
-            docker run -d --name example-app-api -p 80:3000 mdtazbinur/example-app:${{ needs.build-push-prod-image.outputs.sha_short }}
+            docker run -d --name $container_name -p $host_port:3000 mdtazbinur/example-app:${{ needs.build-push-prod-image.outputs.sha_short }}
 
-            # Logout doker
+            # Logout docker
             docker logout
