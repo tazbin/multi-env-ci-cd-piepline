@@ -7,7 +7,7 @@ app.use(morgan('combined'));
 const port = 3000;
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Hello World fro staging!');
 });
 
 app.listen(port, () => {
