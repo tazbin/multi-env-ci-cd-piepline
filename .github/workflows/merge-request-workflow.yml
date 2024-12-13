@@ -87,6 +87,3 @@ jobs:
 
             # Pull new image & run container
             docker run -d --name example-app-api -p 80:3000 mdtazbinur/example-app:${{ needs.build-push-prod-image.outputs.sha_short }}
-
-            # Logout doker
-            docker logout
