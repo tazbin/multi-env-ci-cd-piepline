@@ -52,7 +52,7 @@ jobs:
       - name: Build and push with commit hash tag
         run: |
           docker compose build prod
-          docker tag ci-cd-pipeline-prod mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
+          docker tag multi-env-ci-cd-piepline-prod mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
           docker push mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
 
   deploy-prod-image:
