@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  dev:
+    container_name: nodejs-api-dev
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+    networks:
+      - nodejs-rest-api-network
+
+  prod:
+    container_name: nodejs-api-prod
+    build:
+      context: .
+      target: production
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+    networks:
+      - nodejs-rest-api-network
+
+networks:
+  nodejs-rest-api-network:
+    driver: bridge
