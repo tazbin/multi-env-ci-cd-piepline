@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Print sha_short value
-        run: echo "sha_short=${{ needs.build-push-prod-image.outputs.sha_short }}"
+        run: echo "sha_short=${{ needs.build-push-image.outputs.sha_short }}"
 
       - name: Print BUILD_ENVIRONMENT value
         run: echo "env.BUILD_ENVIRONMENT=${{ env.BUILD_ENVIRONMENT }}"
@@ -90,7 +90,7 @@ jobs:
             fi
 
             # Pull new image & run container
-            docker run -d --name $container_name -p $host_port:3000 mdtazbinur/example-app:${{ needs.build-push-prod-image.outputs.sha_short }}
+            docker run -d --name $container_name -p $host_port:3000 mdtazbinur/example-app:${{ needs.build-push-image.outputs.sha_short }}
 
             # Logout docker
             docker logout
