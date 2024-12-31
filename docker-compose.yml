@@ -7,8 +7,8 @@ services:
       context: .
       target: production
     environment:
-      - REDIS_HOST=redis-container-production
-      - REDIS_PORT=6370
+      - REDIS_HOST=localhost
+      - REDIS_PORT=6379
       - POSTGRES_HOST=postgres-container
       - POSTGRES_DB=example-app-database-production
       - POSTGRES_USER=example-app-user-production
