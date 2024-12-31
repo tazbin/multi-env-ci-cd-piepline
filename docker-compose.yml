@@ -1,31 +1,53 @@
 version: '3.8'
 
 services:
-  dev:
-    container_name: nodejs-api-dev
-    build:
-      context: .
-      target: development
-    volumes:
-      - .:/app
-      - /app/node_modules
-    ports:
-      - '3000:3000'
-    restart: unless-stopped
-    networks:
-      - nodejs-rest-api-network
-
-  prod:
-    container_name: nodejs-api-prod
+  production:
+    container_name: nodejs-api-production
     build:
       context: .
       target: production
+    environment:
+      - REDIS_HOST=eco-redis-container-production
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=eco-postgres-container
+      - POSTGRES_DB=example-app-batabase-production
+      - POSTGRES_USER=example-app-user-production
+      - POSTGRES_PASSWORD=example-app-password
+      - POSTGRES_PORT=5432
     ports:
-      - '3000:3000'
+      - '3001:3000'
     restart: unless-stopped
-    networks:
-      - nodejs-rest-api-network
 
-networks:
-  nodejs-rest-api-network:
-    driver: bridge
+  develop:
+    container_name: nodejs-api-dev
+    build:
+      context: .
+      target: production
+    environment:
+      - REDIS_HOST=eco-redis-container
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=eco-postgres-container
+      - POSTGRES_DB=example-app-batabase-develop
+      - POSTGRES_USER=example-app-user-develop
+      - POSTGRES_PASSWORD=example-app-password
+      - POSTGRES_PORT=5432
+    ports:
+      - '3002:3000'
+    restart: unless-stopped
+
+  staging:
+    container_name: nodejs-api-staging
+    build:
+      context: .
+      target: production
+    environment:
+      - REDIS_HOST=eco-redis-container-staging
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=eco-postgres-container
+      - POSTGRES_DB=example-app-batabase-staging
+      - POSTGRES_USER=example-app-user-staging
+      - POSTGRES_PASSWORD=example-app-password
+      - POSTGRES_PORT=5432
+    ports:
+      - '3003:3000'
+    restart: unless-stopped
