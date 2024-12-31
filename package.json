@@ -18,8 +18,12 @@
   "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
     "express": "^4.21.1",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "pg": "^8.13.1",
+    "redis": "^4.7.0",
+    "sequelize": "^6.37.5"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
