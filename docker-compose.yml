@@ -7,9 +7,9 @@ services:
       context: .
       target: production
     environment:
-      - REDIS_HOST=eco-redis-container-production
+      - REDIS_HOST=redis-container-production
       - REDIS_PORT=6379
-      - POSTGRES_HOST=eco-postgres-container
+      - POSTGRES_HOST=postgres-container
       - POSTGRES_DB=example-app-database-production
       - POSTGRES_USER=example-app-user-production
       - POSTGRES_PASSWORD=example-app-password
@@ -24,9 +24,9 @@ services:
       context: .
       target: production
     environment:
-      - REDIS_HOST=eco-redis-container
+      - REDIS_HOST=redis-container-develop
       - REDIS_PORT=6379
-      - POSTGRES_HOST=eco-postgres-container
+      - POSTGRES_HOST=postgres-container
       - POSTGRES_DB=example-app-database-develop
       - POSTGRES_USER=example-app-user-develop
       - POSTGRES_PASSWORD=example-app-password
@@ -41,9 +41,9 @@ services:
       context: .
       target: production
     environment:
-      - REDIS_HOST=eco-redis-container-staging
+      - REDIS_HOST=redis-container-staging
       - REDIS_PORT=6379
-      - POSTGRES_HOST=eco-postgres-container
+      - POSTGRES_HOST=postgres-container
       - POSTGRES_DB=example-app-database-staging
       - POSTGRES_USER=example-app-user-staging
       - POSTGRES_PASSWORD=example-app-password
