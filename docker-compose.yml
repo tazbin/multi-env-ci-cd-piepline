@@ -10,7 +10,7 @@ services:
       - REDIS_HOST=eco-redis-container-production
       - REDIS_PORT=6379
       - POSTGRES_HOST=eco-postgres-container
-      - POSTGRES_DB=example-app-batabase-production
+      - POSTGRES_DB=example-app-database-production
       - POSTGRES_USER=example-app-user-production
       - POSTGRES_PASSWORD=example-app-password
       - POSTGRES_PORT=5432
@@ -27,7 +27,7 @@ services:
       - REDIS_HOST=eco-redis-container
       - REDIS_PORT=6379
       - POSTGRES_HOST=eco-postgres-container
-      - POSTGRES_DB=example-app-batabase-develop
+      - POSTGRES_DB=example-app-database-develop
       - POSTGRES_USER=example-app-user-develop
       - POSTGRES_PASSWORD=example-app-password
       - POSTGRES_PORT=5432
@@ -44,7 +44,7 @@ services:
       - REDIS_HOST=eco-redis-container-staging
       - REDIS_PORT=6379
       - POSTGRES_HOST=eco-postgres-container
-      - POSTGRES_DB=example-app-batabase-staging
+      - POSTGRES_DB=example-app-database-staging
       - POSTGRES_USER=example-app-user-staging
       - POSTGRES_PASSWORD=example-app-password
       - POSTGRES_PORT=5432
