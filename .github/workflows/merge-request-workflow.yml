@@ -36,7 +36,7 @@ jobs:
       - name: Build and push with commit hash tag
         run: |
           docker compose build ${{ env.BUILD_ENVIRONMENT }}
-          docker ps
+          docker image ls
           docker tag multi-env-ci-cd-piepline-prod mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
           docker push mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
 
