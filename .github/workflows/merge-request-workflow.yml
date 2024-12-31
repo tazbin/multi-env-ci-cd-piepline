@@ -92,5 +92,8 @@ jobs:
             # Pull new image & run container
             docker run -d --name $container_name -p $host_port:3000 mdtazbinur/example-app:${{ needs.build-push-image.outputs.sha_short }}
 
+            # Connect the container to right network
+            docker network connect ${{ env.BUILD_ENVIRONMENT }}-network $container_name
+
             # Logout docker
             docker logout
