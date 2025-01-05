@@ -20,9 +20,12 @@ const redisHost = process.env.REDIS_HOST || 'localhost'; // Get Redis host from 
 const redisPort = process.env.REDIS_PORT || 6379;       // Get Redis port from environment
 
 console.table([{
-  redisHost,
-  redisPort,
-  env_redis_port: process.env.REDIS_PORT
+  redis_host: process.env.REDIS_HOST,
+  redis_port: process.env.REDIS_PORT,
+  db_host: process.env.POSTGRES_HOST,
+  db_name: process.env.POSTGRES_DB,
+  db_users: process.env.POSTGRES_USER,
+  db_pass: process.env.POSTGRES_PASSWORD,
 }]);
 
 const redisClient = createClient({
