@@ -21,7 +21,8 @@ const redisPort = process.env.REDIS_PORT || 6379;       // Get Redis port from e
 
 console.table([{
   redisHost,
-  redisPort
+  redisPort,
+  env_redis_port: process.env.REDIS_PORT
 }]);
 
 const redisClient = createClient({
