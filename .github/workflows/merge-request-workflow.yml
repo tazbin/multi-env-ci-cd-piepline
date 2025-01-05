@@ -35,9 +35,9 @@ jobs:
 
       - name: Build and push with commit hash tag
         run: |
-          docker compose build ${{ env.BUILD_ENVIRONMENT }}
+          ddocker build --target production -t example-app-image .
           docker image ls
-          docker tag multi-env-ci-cd-piepline-${{ env.BUILD_ENVIRONMENT }} mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
+          docker tag example-app-image mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
           docker push mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
 
   deploy-image:
@@ -60,6 +60,17 @@ jobs:
             # Log in to Docker Hub using the access token
             echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
+            cd example-app-server
+            pwd
+
+            if [ "${{ env.BUILD_ENVIRONMENT }}" == "production" ]; then
+              sed -i "s/^PRODUCTION_APP_IMAGE_TAG=[^ ]*/PRODUCTION_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+            elif [ "${{ env.BUILD_ENVIRONMENT }}" == "staging" ]; then
+              sed -i "s/^STAGING_APP_IMAGE_TAG=[^ ]*/STAGING_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+            elif [ "${{ env.BUILD_ENVIRONMENT }}" == "develop" ]; then
+              sed -i "s/^DEVELOP_APP_IMAGE_TAG=[^ ]*/DEVELOP_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+            fi
+
             container_name="example-app-api-${{ env.BUILD_ENVIRONMENT }}"
 
             # Stop running container
@@ -80,17 +91,8 @@ jobs:
               docker rmi $old_image
             fi
 
-            # Selecting port
-            if [ "${{ env.BUILD_ENVIRONMENT }}" == "production" ]; then
-              host_port=80
-            elif [ "${{ env.BUILD_ENVIRONMENT }}" == "staging" ]; then
-              host_port=81
-            else
-              host_port=82
-            fi
-
             # Pull new image & run container
-            docker run -d --name $container_name -p $host_port:3000 mdtazbinur/example-app:${{ needs.build-push-image.outputs.sha_short }}
+            docker-compose up ${{ env.BUILD_ENVIRONMENT }} --build -d
 
             # Logout docker
             docker logout
