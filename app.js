@@ -19,6 +19,11 @@ console.log('Initializing Redis client...');
 const redisHost = process.env.REDIS_HOST || 'localhost'; // Get Redis host from environment
 const redisPort = process.env.REDIS_PORT || 6379;       // Get Redis port from environment
 
+console.table([{
+  redisHost,
+  redisPort
+}]);
+
 const redisClient = createClient({
   url: `redis://${redisHost}:${redisPort}`  // Combine host and port into the Redis URL
 });
