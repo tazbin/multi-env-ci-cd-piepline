@@ -7,9 +7,9 @@ services:
       context: .
       target: production
       args:
-        REDIS_HOST: redis-container-production
+        REDIS_HOST: localhost
         REDIS_PORT: 6370
-        POSTGRES_HOST: postgres-container
+        POSTGRES_HOST: localhost
         POSTGRES_DB: example-app-database-production
         POSTGRES_USER: example-app-user-production
         POSTGRES_PASSWORD: example-app-password
