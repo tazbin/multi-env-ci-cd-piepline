@@ -35,7 +35,7 @@ jobs:
 
       - name: Build and push with commit hash tag
         run: |
-          ddocker build --target production -t example-app-image .
+          docker build --target production -t example-app-image .
           docker image ls
           docker tag example-app-image mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
           docker push mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
