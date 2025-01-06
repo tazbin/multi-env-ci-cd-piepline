@@ -15,32 +15,7 @@ env:
     }}
 
 jobs:
-  check-code-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Run linting
-        run: docker compose run dev npm run lint:check
-
-  check-code-format:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Run format check
-        run: docker compose run dev npm run format:check
-
-  run-test-cases:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Run tests
-        run: docker compose run dev npm run test
-
-  build-push-prod-image:
-    needs: [check-code-lint, check-code-format, run-test-cases]
+  build-push-image:
     runs-on: ubuntu-latest
     outputs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
@@ -60,16 +35,17 @@ jobs:
 
       - name: Build and push with commit hash tag
         run: |
-          docker compose build prod
-          docker tag multi-env-ci-cd-piepline-prod mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
+          docker build --target production -t example-app-image .
+          docker image ls
+          docker tag example-app-image mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
           docker push mdtazbinur/example-app:${{ steps.vars.outputs.sha_short }}
 
-  deploy-prod-image:
-    needs: build-push-prod-image
+  deploy-image:
+    needs: build-push-image
     runs-on: ubuntu-latest
     steps:
       - name: Print sha_short value
-        run: echo "sha_short=${{ needs.build-push-prod-image.outputs.sha_short }}"
+        run: echo "sha_short=${{ needs.build-push-image.outputs.sha_short }}"
 
       - name: Print BUILD_ENVIRONMENT value
         run: echo "env.BUILD_ENVIRONMENT=${{ env.BUILD_ENVIRONMENT }}"
@@ -84,7 +60,22 @@ jobs:
             # Log in to Docker Hub using the access token
             echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
-            container_name="example-app-api-${{ env.BUILD_ENVIRONMENT }}"
+            cd example-app-server
+            pwd
+            source .env
+
+            if [ "${{ env.BUILD_ENVIRONMENT }}" == "production" ]; then
+              sed -i "s/^PRODUCTION_APP_IMAGE_TAG=[^ ]*/PRODUCTION_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+              container_name="$PRODUCTION_CONTAINER_NAME"
+            elif [ "${{ env.BUILD_ENVIRONMENT }}" == "staging" ]; then
+              sed -i "s/^STAGING_APP_IMAGE_TAG=[^ ]*/STAGING_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+              container_name="$STAGING_CONTAINER_NAME"
+            elif [ "${{ env.BUILD_ENVIRONMENT }}" == "develop" ]; then
+              sed -i "s/^DEVELOP_APP_IMAGE_TAG=[^ ]*/DEVELOP_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+              container_name="$DEVELOP_CONTAINER_NAME"
+            fi
+
+            echo "Container Name: $container_name"
 
             # Stop running container
             if [ "$(docker ps -f name=$container_name -q)" ]; then
@@ -104,17 +95,8 @@ jobs:
               docker rmi $old_image
             fi
 
-            # Selecting port
-            if [ "${{ env.BUILD_ENVIRONMENT }}" == "production" ]; then
-              host_port=80
-            elif [ "${{ env.BUILD_ENVIRONMENT }}" == "staging" ]; then
-              host_port=81
-            else
-              host_port=82
-            fi
-
             # Pull new image & run container
-            docker run -d --name $container_name -p $host_port:3000 mdtazbinur/example-app:${{ needs.build-push-prod-image.outputs.sha_short }}
+            docker-compose up ${{ env.BUILD_ENVIRONMENT }} --build -d
 
             # Logout docker
             docker logout
