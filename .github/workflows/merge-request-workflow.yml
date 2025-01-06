@@ -62,16 +62,20 @@ jobs:
 
             cd example-app-server
             pwd
+            source .env
 
             if [ "${{ env.BUILD_ENVIRONMENT }}" == "production" ]; then
               sed -i "s/^PRODUCTION_APP_IMAGE_TAG=[^ ]*/PRODUCTION_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+              container_name="$PRODUCTION_CONTAINER_NAME"
             elif [ "${{ env.BUILD_ENVIRONMENT }}" == "staging" ]; then
               sed -i "s/^STAGING_APP_IMAGE_TAG=[^ ]*/STAGING_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+              container_name="$STAGING_CONTAINER_NAME"
             elif [ "${{ env.BUILD_ENVIRONMENT }}" == "develop" ]; then
               sed -i "s/^DEVELOP_APP_IMAGE_TAG=[^ ]*/DEVELOP_APP_IMAGE_TAG=${{ needs.build-push-image.outputs.sha_short }}/" .env
+              container_name="$DEVELOP_CONTAINER_NAME"
             fi
 
-            container_name="example-app-api-${{ env.BUILD_ENVIRONMENT }}"
+            echo "Container Name: $container_name"
 
             # Stop running container
             if [ "$(docker ps -f name=$container_name -q)" ]; then
