@@ -82,7 +82,7 @@ const User = sequelize.define('User', {
 
 // Health Check Route
 app.get('/', (req, res) => {
-  res.send('Hello World from production!');
+  res.send('Hello World from develop!');
 });
 
 // Get Users Route with Cache
